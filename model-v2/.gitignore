@@ -12,7 +12,7 @@ __pycache__/
 
 # --- Data & Weights (CRITICAL) ---
 data/
-checkpoints/
+saved/
 models/
 *.pt        # PyTorch model weights (don't push these to GitHub!)
 *.pth       # Alternative PyTorch extension
@@ -22,7 +22,7 @@ models/
 *.pkl
 
 # --- Project Specific ---
-tmoe
+tmoe/
 *.java
 logs/
 *.log

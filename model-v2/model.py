@@ -1,6 +1,53 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import json
+import os
+import re
+
+def load_data(path):
+    all_text = ""
+    with open(path, 'r', encoding='utf-8') as f:
+        for line in f:
+            data = json.loads(line)
+            # Add a separator token so the model knows where one program ends
+            all_text += data['text'] + "<|endoftext|>\n" 
+    return all_text
+
+import csv
+import os
+
+def log_loss(epoch, loss, expert_usage):
+    file_exists = os.path.isfile('training_logs.csv')
+    with open('./saved/training_logs.csv', 'a', newline='') as f:
+        writer = csv.writer(f)
+        # Header for the first time
+        if not file_exists:
+            writer.writerow(['epoch', 'loss', 'exp1_pct', 'exp2_pct', 'exp3_pct', 'exp4_pct'])
+        # Write the data
+        writer.writerow([epoch, loss] + expert_usage)
+
+class QriolloTokenizer:
+    def __init__(self, text):
+        self.special_token = "<|end|>"
+        # Get unique chars, but make sure we don't include 
+        # the characters that make up the special token by accident
+        chars = sorted(list(set(text)))
+        self.vocab = [self.special_token] + chars 
+        self.vocab_size = len(self.vocab)
+        
+        self.stoi = { ch:i for i,ch in enumerate(self.vocab) }
+        self.itos = { i:ch for i,ch in enumerate(self.vocab) }
+        
+        # This regex says: "Find the special token OR any single character"
+        self.pattern = re.compile(r'(<\|end\|>|.)', re.DOTALL)
+
+    def encode(self, s):
+        tokens = self.pattern.findall(s)
+        return [self.stoi[t] for t in tokens]
+    
+    def decode(self, l):
+        return ''.join([self.itos[i] for i in l])
 
 class Expert(nn.Module):
     def __init__(self, n_embd):
@@ -128,7 +175,22 @@ class SovereignMoE(nn.Module):
 
         return logits, loss    
     
-    
+    @torch.no_grad()
+    def generate(self, idx, max_new_tokens, stop_token_id=None):
+        for _ in range(max_new_tokens):
+            idx_cond = idx[:, -128:]
+            logits, _ = self(idx_cond)
+            logits = logits[:, -1, :]
+            probs = torch.softmax(logits, dim=-1)
+            idx_next = torch.multinomial(probs, num_samples=1)
+            
+            # Check if we hit the stop token
+            if stop_token_id is not None and idx_next.item() == stop_token_id:
+                break
+                
+            idx = torch.cat((idx, idx_next), dim=1)
+        return idx
+        
     
 if __name__ == "__main__":
     # 1. Setup a tiny version to test (128 embedding size, 4 experts)
