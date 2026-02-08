@@ -24,6 +24,7 @@ models/
 # --- Project Specific ---
 tmoe/
 *.java
+pruebas.py
 logs/
 *.log
 # If you use Tensorboard to watch your MoE loss:
