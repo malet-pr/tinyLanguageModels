@@ -1,0 +1,47 @@
+# --- Environments ---
+venv/
+.env
+# If you have venvs inside subfolders, this catch-all is better:
+**/venv/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# --- Data & Weights (CRITICAL) ---
+data/
+checkpoints/
+models/
+*.pt        # PyTorch model weights (don't push these to GitHub!)
+*.pth       # Alternative PyTorch extension
+*.bin       # Often used for larger model weights
+*.npz
+*.npy
+*.pkl
+
+# --- Project Specific ---
+tmoe
+*.java
+logs/
+*.log
+# If you use Tensorboard to watch your MoE loss:
+runs/
+
+# --- Dataset Samples ---
+# You might want to push your .jsonl if it's small, 
+# but if it gets big, uncomment the line below:
+*.jsonl
+
+# --- OS & IDEs ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# --- Output & Plots ---
+plots/
+figures/
+*.png
+*.pdf

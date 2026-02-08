@@ -1,4 +1,5 @@
-.vslm
+vslm/
+saved/
 __pycache__/
 data/
 checkpoints/
